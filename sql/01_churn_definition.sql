@@ -7,7 +7,8 @@
 --   renewed       : 다음 결제가 covered_until 이후 N일 이내에 발생
 --   churn_then_return : N일을 넘겨 다시 결제 (한 번 이탈했다가 복귀)
 --   churn         : 이후 결제가 없고, 데이터 종료일까지 N일 이상 지남
---   censored      : 이후 결제가 없지만 아직 N일이 지나지 않아 판단 불가 (이탈률 계산에서 제외)
+--   censored      : 이후 결제가 없지만 아직 N일이 지나지 않아 판단 불가
+--                   (만료 건 기준 이탈률에서는 제외, 사용자 기준 이탈률에서는 활동 중으로 취급)
 -- 결정 사항: is_cancel = 1 거래는 갱신으로 보지 않고 제외했습니다. 이 가정은 README에 적고 검증하세요.
 
 -- 1. 사용자별 구독 거래 시퀀스
@@ -60,13 +61,23 @@ SELECT msno,
 FROM churn_events
 GROUP BY msno, n_days;
 
--- 4. 민감도: N에 따라 이탈률이 얼마나 변하는가 (censored 사용자는 제외)
+-- 4. 민감도: N에 따라 이탈률이 얼마나 변하는가
+-- (a) 만료 건 기준: 판정 가능한(censored 제외) 만료 건 중 이탈 비율
+SELECT n_days,
+       COUNT(*) FILTER (WHERE outcome <> 'censored') AS decided_events,
+       ROUND(AVG((outcome IN ('churn', 'churn_then_return'))::INT)
+             FILTER (WHERE outcome <> 'censored'), 4) AS churn_event_rate
+FROM churn_events
+GROUP BY n_days
+ORDER BY n_days;
+
+-- (b) 사용자 기준: censored(아직 판정 불가)는 활동 중으로 보고 전체 사용자 대비 비율
+--     주의: censored 사용자를 빼고 계산하면 남는 사용자는 모두 이탈이라 항상 100%가 됨
 SELECT n_days,
        COUNT(*)                          AS users,
        ROUND(AVG(ever_churned::INT), 4)  AS ever_churn_rate,
        ROUND(AVG(churned_final::INT), 4) AS final_churn_rate
 FROM user_churn
-WHERE NOT is_censored
 GROUP BY n_days
 ORDER BY n_days;
 

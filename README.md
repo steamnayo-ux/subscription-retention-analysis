@@ -82,13 +82,15 @@ subscription-retention-analysis/
    pip install -r requirements.txt
    ```
 
-3. 프로젝트 루트에서 SQL을 순서대로 실행합니다. (DuckDB)
+3. 프로젝트 루트에서 SQL을 순서대로 실행합니다. (DuckDB, `data/kkbox.duckdb`에 결과 저장)
 
    ```
-   duckdb data/kkbox.duckdb < sql/00_load_and_sample.sql
-   duckdb data/kkbox.duckdb < sql/01_churn_definition.sql
-   duckdb data/kkbox.duckdb < sql/02_build_user_master.sql
+   python python/run_sql.py sql/00_load_and_sample.sql
+   python python/run_sql.py sql/01_churn_definition.sql
+   python python/run_sql.py sql/02_build_user_master.sql
    ```
+
+   `00`은 대용량 로그를 읽어 시간이 오래 걸리므로 처음에는 `sample_pct`를 1로 낮춰 시험하세요.
 
 ## 기술 스택
 

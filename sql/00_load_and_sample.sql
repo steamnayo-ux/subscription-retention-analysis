@@ -6,7 +6,7 @@
 -- 0. 분석 파라미터
 CREATE OR REPLACE TABLE params AS
 SELECT DATE '2017-03-31' AS data_end,    -- 거래 데이터 마지막 반영일 (transactions_v2 기준)
-       10                AS sample_pct;  -- 사용자 샘플링 비율(%)
+       1                AS sample_pct;  -- 사용자 샘플링 비율(%)
 
 -- 1. 회원 정보
 CREATE OR REPLACE TABLE members AS
