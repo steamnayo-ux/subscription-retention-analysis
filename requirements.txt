@@ -1,0 +1,10 @@
+duckdb
+pandas
+numpy
+scipy
+statsmodels
+lifelines
+matplotlib
+seaborn
+openpyxl
+jupyter

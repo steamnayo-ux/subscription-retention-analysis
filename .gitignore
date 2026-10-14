@@ -1,0 +1,21 @@
+# 원본 데이터는 올리지 않습니다 (용량, Kaggle 약관)
+data/raw/*
+!data/raw/.gitkeep
+
+# 로컬 DB·대용량 중간 파일
+*.duckdb
+*.duckdb.wal
+*.parquet
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# 기타
+.env
+.DS_Store
+Thumbs.db
+~$*.xlsx
