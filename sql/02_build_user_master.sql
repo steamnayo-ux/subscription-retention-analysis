@@ -16,7 +16,8 @@ WITH first_tx AS (
 log_range AS (
     SELECT MIN(log_date) AS log_start FROM user_logs_sample
 ),
--- 가입일 기준 초기 7일/30일 행동. 하루 총 청취시간은 이상치 방지를 위해 86,400초로 상한 처리
+-- 가입일 기준 초기 7일/30일 행동. 하루 총 청취시간은 이상치 방지를 위해 86,400초로 상한 처리하고,
+-- 음수(원본 오류, 샘플 로그 582행)는 결측으로 보고 합산에서 제외 (EDA 01_eda.ipynb 6-2 참고)
 early AS (
     SELECT m.msno,
            COUNT(DISTINCT l.log_date) FILTER (
@@ -25,7 +26,7 @@ early AS (
            COUNT(DISTINCT l.log_date) FILTER (
                WHERE l.log_date >= m.registration_date AND l.log_date < m.registration_date + 30
            ) AS active_days_30d,
-           SUM(LEAST(l.total_secs, 86400)) FILTER (
+           SUM(CASE WHEN l.total_secs >= 0 THEN LEAST(l.total_secs, 86400) END) FILTER (
                WHERE l.log_date >= m.registration_date AND l.log_date < m.registration_date + 30
            ) AS listen_secs_30d,
            SUM(l.num_unq) FILTER (
