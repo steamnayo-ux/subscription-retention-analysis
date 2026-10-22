@@ -7,6 +7,10 @@
 --              -> 03b와 같은 모집단이므로 합계가 퍼널 첫 결제자 수(9,097명)와 같아야 함
 --   d0       : 첫 결제일 (취소 제외 첫 거래의 transaction_date, sub_sequence와 같은 기준)
 --   cohort_month : d0의 월
+--   첫 거래 선택 : 거래일, 만료일이 같은 거래가 여럿이면 결제금액이 큰 거래를 첫 거래로 봄
+--              (같은 날 같은 만료일에 0원 행과 99원 행이 함께 찍힌 사용자 41명 확인.
+--               0원 행은 정가 149 기준의 보조 행으로 보이고, 실결제는 99원 행으로 추정.
+--               정렬 기준이 없으면 어느 행이 뽑힐지 실행마다 달라질 수 있어 고정함)
 --   segment  : 첫 결제 기준
 --                trial      = 첫 플랜 7일 (무료 체험 추정, 03c와 같은 기준)
 --                free_start = 7일 플랜이 아니면서 첫 결제금액 0원 (쿠폰·프로모션 시작 추정)
@@ -35,7 +39,10 @@ WITH first_tx AS (
     FROM (
         SELECT msno, transaction_date, payment_plan_days, actual_amount_paid,
                ROW_NUMBER() OVER (PARTITION BY msno
-                                  ORDER BY transaction_date, membership_expire_date) AS rn
+                                  ORDER BY transaction_date,
+                                           membership_expire_date,
+                                           actual_amount_paid DESC,
+                                           payment_plan_days DESC) AS rn
         FROM transactions_sample
         WHERE is_cancel = 0
     )
